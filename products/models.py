@@ -22,7 +22,9 @@ class Tag(AbstractModel):
 
 class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE,
-                                 null=True, blank=True, related_name='product_categories')  # category_id
+                                 null=True,
+                                 blank=True,
+                                 related_name='product_categories')  # category_id = 1
     tags = models.ManyToManyField(Tag, blank=True)
     title = models.CharField(max_length=255)
     text = models.TextField(null=True, blank=True)
