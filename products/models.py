@@ -26,7 +26,7 @@ class Product(models.Model):
                                  blank=True,
                                  related_name='product_categories')  # category_id = 1
     tags = models.ManyToManyField(Tag, blank=True)
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, null=False)
     text = models.TextField(null=True, blank=True)
     price = models.FloatField()
     is_active = models.BooleanField(default=True)

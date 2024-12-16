@@ -2,7 +2,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Product
-from .serializers import ProductSerializer, ProductDetailSerializer
+from .serializers import (ProductSerializer, ProductDetailSerializer,
+                          ProductValidateSerializer, ProductUpdateSerializer, ProductCreateSerializer)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -16,12 +17,16 @@ def product_detail_api_view(request, id):
         data = ProductDetailSerializer(product).data
         return Response(data=data)
     elif request.method == 'PUT':
-        product.title = request.data.get('title')
-        product.text = request.data.get('text')
-        product.price = request.data.get('price')
-        product.is_active = request.data.get('is_active')
-        product.category_id = request.data.get('category_id')
-        product.tags.set(request.data.get('tags'))
+        serializer = ProductUpdateSerializer(data=request.data,
+                                             context={'product': product})
+        serializer.is_valid(raise_exception=True)
+
+        product.title = serializer.validated_data.get('title')
+        product.text = serializer.validated_data.get('text')
+        product.price = serializer.validated_data.get('price')
+        product.is_active = serializer.validated_data.get('is_active')
+        product.category_id = serializer.validated_data.get('category_id')
+        product.tags.set(serializer.validated_data.get('tags'))
         product.save()
         return Response(status=status.HTTP_201_CREATED,
                         data=ProductDetailSerializer(product).data)
@@ -43,13 +48,19 @@ def product_list_api_view(request):
         # step 3: Return response with data and status (default: 200)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
     elif request.method == 'POST':
+        # step 0: Validation (Existing, Typing, Extra)
+        serializer = ProductCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(status=status.HTTP_400_BAD_REQUEST,
+                            data=serializer.errors)
+
         # step 1: Receive data from RequestBody
-        title = request.data.get('title')
-        text = request.data.get('text', 'no text')
-        price = request.data.get('price')
-        is_active = request.data.get('is_active')
-        category_id = request.data.get('category_id')
-        tags = request.data.get('tags', [])
+        title = serializer.validated_data.get('title')  # None
+        text = serializer.validated_data.get('text', 'no text')
+        price = serializer.validated_data.get('price')
+        is_active = serializer.validated_data.get('is_active')  # T
+        category_id = serializer.validated_data.get('category_id')
+        tags = serializer.validated_data.get('tags', [])
 
         # step 2: Create product by received data
         product = Product.objects.create(
