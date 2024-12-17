@@ -37,6 +37,7 @@ def product_detail_api_view(request, id):
 
 @api_view(http_method_names=['GET', 'POST'])
 def product_list_api_view(request):
+    print(request.user)
     if request.method == 'GET':
         # step 1: Collect all products from DB (QuerySet)
         products = (Product.objects.select_related('category')
